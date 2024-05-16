@@ -3,8 +3,8 @@ set -eu
 
 # Function to check if OpenVPN connection is established
 check_vpn_connection() {
-    # Check the OpenVPN log file for successful connection message
-    if grep -q "Initialization Sequence Completed" /var/log/openvpn.log; then
+    # Check the status file for successful connection message
+    if grep -q "CLIENT_LIST,Connected" /etc/openvpn/openvpn-status.log; then
         return 0  # Connection is established
     else
         return 1  # Connection is not yet established

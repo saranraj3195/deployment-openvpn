@@ -1,7 +1,7 @@
 FROM debian:stable-slim
 
 # Install necessary packages
-RUN apt update && apt -yq install rsync openssh-client openvpn
+RUN apt update && apt -yq install rsync openssh-client openvpn iproute2
 
 # Label
 LABEL "com.github.actions.name"="Deploy with rsync"

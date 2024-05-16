@@ -1,5 +1,5 @@
     - name: Deploy to server
-      uses: saranraj3195/sparkout-deployment@v2
+      uses: saranraj3195/deployment-openvpn@main
       env:
         DEPLOY_KEY: ${{ secrets.SERVER_SSH_KEY }}
         ARGS: "-avz --delete"

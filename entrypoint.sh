@@ -24,12 +24,13 @@ chmod 600 /etc/openvpn/auth.txt
 openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt --daemon
 
 # Wait for the VPN to establish
-echo "Waiting for VPN connection..."
-while ! ps aux | grep "[o]penvpn" >/dev/null; do
-  sleep 1
-done
+sleep 15  # Adjust the sleep time if needed
 
-echo "VPN connection established."
+# Verify VPN connection using pidof
+if ! pidof openvpn >/dev/null; then
+  echo "Error: OpenVPN connection failed."
+  exit 1
+fi
 
 # Prepare SSH keys and rsync
 SSHPATH="$HOME/.ssh"
@@ -43,4 +44,4 @@ chmod 600 "$SSHPATH/key"
 SERVER_DEPLOY_STRING="$USERNAME@$SERVER_IP:$SERVER_DESTINATION"
 
 # Sync files using rsync
-sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING"
+sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING" if ! pidof openvpn >/dev/null; then

@@ -24,13 +24,12 @@ chmod 600 /etc/openvpn/auth.txt
 openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt --daemon
 
 # Wait for the VPN to establish
-sleep 15  # Adjust the sleep time if needed
+echo "Waiting for VPN connection..."
+while ! pgrep -x "openvpn" >/dev/null; do
+  sleep 1
+done
 
-# Verify VPN connection using pidof
-if ! pidof openvpn >/dev/null; then
-  echo "Error: OpenVPN connection failed."
-  exit 1
-fi
+echo "VPN connection established."
 
 # Prepare SSH keys and rsync
 SSHPATH="$HOME/.ssh"

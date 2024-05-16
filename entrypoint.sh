@@ -27,7 +27,7 @@ openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt
 sleep 15  # Adjust the sleep time if needed
 
 # Verify VPN connection
-if ! pgrep -x "openvpn" >/dev/null; then
+if ! ps -ef | grep "openvpn" | grep -v "grep" >/dev/null; then
   echo "Error: OpenVPN connection failed."
   exit 1
 fi

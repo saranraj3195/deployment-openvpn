@@ -1,6 +1,16 @@
 #!/bin/bash
 set -eu
 
+# Function to check if OpenVPN connection is established
+check_vpn_connection() {
+    # Check the OpenVPN log file for successful connection message
+    if grep -q "Initialization Sequence Completed" /var/log/openvpn.log; then
+        return 0  # Connection is established
+    else
+        return 1  # Connection is not yet established
+    fi
+}
+
 # Ensure OpenVPN configuration is provided
 if [ -z "${VPN_CONFIG:-}" ]; then
   echo "Error: VPN_CONFIG environment variable is not set."
@@ -24,13 +34,12 @@ chmod 600 /etc/openvpn/auth.txt
 openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt --daemon
 
 # Wait for the VPN to establish
-sleep 15  # Adjust the sleep time if needed
+echo "Waiting for VPN connection..."
+while ! check_vpn_connection; do
+  sleep 1
+done
 
-# Verify VPN connection using pidof
-if ! pidof openvpn >/dev/null; then
-  echo "Error: OpenVPN connection failed."
-  exit 1
-fi
+echo "VPN connection established."
 
 # Prepare SSH keys and rsync
 SSHPATH="$HOME/.ssh"
@@ -44,4 +53,4 @@ chmod 600 "$SSHPATH/key"
 SERVER_DEPLOY_STRING="$USERNAME@$SERVER_IP:$SERVER_DESTINATION"
 
 # Sync files using rsync
-sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING" if ! pidof openvpn >/dev/null; then
+sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING"

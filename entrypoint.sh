@@ -25,7 +25,7 @@ openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt
 
 # Wait for the VPN to establish
 echo "Waiting for VPN connection..."
-while ! pgrep -x "openvpn" >/dev/null; do
+while ! ps aux | grep "[o]penvpn" >/dev/null; do
   sleep 1
 done
 

@@ -1,16 +1,6 @@
 #!/bin/bash
 set -eu
 
-# Function to check if OpenVPN connection is established
-check_vpn_connection() {
-    # Check the status file for successful connection message
-    if grep -q "CLIENT_LIST,Connected" /var/run/openvpn/status.log; then
-        return 0  # Connection is established
-    else
-        return 1  # Connection is not yet established
-    fi
-}
-
 # Ensure OpenVPN configuration is provided
 if [ -z "${VPN_CONFIG:-}" ]; then
   echo "Error: VPN_CONFIG environment variable is not set."
@@ -35,7 +25,7 @@ openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt
 
 # Wait for the VPN to establish
 echo "Waiting for VPN connection..."
-while ! check_vpn_connection; do
+while ! pgrep -x "openvpn" >/dev/null; do
   sleep 1
 done
 
@@ -53,4 +43,4 @@ chmod 600 "$SSHPATH/key"
 SERVER_DEPLOY_STRING="$USERNAME@$SERVER_IP:$SERVER_DESTINATION"
 
 # Sync files using rsync
-sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING"
+rsync $ARGS -e "ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT" $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING

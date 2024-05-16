@@ -1,15 +1,15 @@
 FROM debian:stable-slim
 
 # Install necessary packages
-RUN apt update && apt -yq install rsync openssh-client openvpn iproute2
-
-# Label
-LABEL "com.github.actions.name"="Deploy with rsync"
-LABEL "maintainer"="sparkout <saranraj.st0078@sparkouttech.com>"
+RUN apt-get update && \
+    apt-get install -yq openvpn rsync ssh-client && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy entrypoint script
-ADD entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
+
+# Set execute permissions for the entrypoint script
 RUN chmod +x /entrypoint.sh
 
-# Set entrypoint
+# Set the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

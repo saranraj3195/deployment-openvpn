@@ -20,14 +20,14 @@ echo "$VPN_CONFIG" > /etc/openvpn/config.ovpn
 echo -e "$VPN_USERNAME\n$VPN_PASSWORD" > /etc/openvpn/auth.txt
 chmod 600 /etc/openvpn/auth.txt
 
-# Start OpenVPN in the background
-openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt --daemon
+# Start OpenVPN in the background with increased verbosity
+openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt --daemon --verb 6
 
 # Wait for the VPN to establish
-sleep 15  # Adjust the sleep time if needed
+sleep 30  # Adjust the sleep time if needed
 
-# Verify VPN connection using pidof
-if ! pidof openvpn >/dev/null; then
+# Check OpenVPN logs for errors
+if ! grep -q "Initialization Sequence Completed" /var/log/openvpn.log; then
   echo "Error: OpenVPN connection failed."
   exit 1
 fi
@@ -44,4 +44,10 @@ chmod 600 "$SSHPATH/key"
 SERVER_DEPLOY_STRING="$USERNAME@$SERVER_IP:$SERVER_DESTINATION"
 
 # Sync files using rsync
-sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING" if ! pidof openvpn >/dev/null; then
+sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING"
+
+# Verify VPN connection again before exit
+if ! pidof openvpn >/dev/null; then
+  echo "Error: OpenVPN connection failed."
+  exit 1
+fi

@@ -6,15 +6,24 @@ function debug_log {
   echo "[DEBUG] $1"
 }
 
-# Ensure OpenVPN configuration is provided
+# Ensure required environment variables are provided
 if [ -z "${VPN_CONFIG:-}" ]; then
   echo "Error: VPN_CONFIG environment variable is not set."
   exit 1
 fi
 
-# Ensure OpenVPN username and password are provided
 if [ -z "${VPN_USERNAME:-}" ] || [ -z "${VPN_PASSWORD:-}" ]; then
   echo "Error: VPN_USERNAME and VPN_PASSWORD environment variables are not set."
+  exit 1
+fi
+
+if [ -z "${DEPLOY_KEY:-}" ]; then
+  echo "Error: DEPLOY_KEY environment variable is not set."
+  exit 1
+fi
+
+if [ -z "${USERNAME:-}" ] || [ -z "${SERVER_IP:-}" ] || [ -z "${SERVER_DESTINATION:-}" ] || [ -z "${SERVER_PORT:-}" ]; then
+  echo "Error: SERVER connection environment variables (USERNAME, SERVER_IP, SERVER_DESTINATION, SERVER_PORT) are not set."
   exit 1
 fi
 
@@ -62,7 +71,7 @@ SERVER_DEPLOY_STRING="$USERNAME@$SERVER_IP:$SERVER_DESTINATION"
 
 # Sync files using rsync
 debug_log "Starting file sync with rsync..."
-sh -c "rsync $ARGS -e 'ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT' $GITHUB_WORKSPACE/$FOLDER $SERVER_DEPLOY_STRING"
+rsync $ARGS -e "ssh -i $SSHPATH/key -o StrictHostKeyChecking=no -p $SERVER_PORT" "$GITHUB_WORKSPACE/$FOLDER" "$SERVER_DEPLOY_STRING"
 
 # Verify VPN connection again before exit
 if pidof openvpn >/dev/null; then

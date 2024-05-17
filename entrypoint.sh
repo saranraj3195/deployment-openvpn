@@ -20,14 +20,17 @@ echo "$VPN_CONFIG" > /etc/openvpn/config.ovpn
 echo -e "$VPN_USERNAME\n$VPN_PASSWORD" > /etc/openvpn/auth.txt
 chmod 600 /etc/openvpn/auth.txt
 
-# Start OpenVPN in the background with increased verbosity
-openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt --daemon --verb 6
+# Specify the log file
+LOG_FILE="/var/log/openvpn.log"
+
+# Start OpenVPN in the background with specified log file and increased verbosity
+openvpn --config /etc/openvpn/config.ovpn --auth-user-pass /etc/openvpn/auth.txt --daemon --log $LOG_FILE --verb 6
 
 # Wait for the VPN to establish
 sleep 30  # Adjust the sleep time if needed
 
-# Check OpenVPN logs for errors
-if ! grep -q "Initialization Sequence Completed" /var/log/openvpn.log; then
+# Check OpenVPN logs for the successful connection message
+if ! grep -q "Initialization Sequence Completed" $LOG_FILE; then
   echo "Error: OpenVPN connection failed."
   exit 1
 fi
